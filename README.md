@@ -1,193 +1,895 @@
-# SWITCH — Smart-Home Routine Verification, Replay and Regression Requirements
+# 🔀 SWITCH
 
-> **SIMULATED DEMO.** Nothing here controls real devices. There is **no Amazon / Alexa+ connection** (the Alexa+
-> experience is an in-app simulation, labelled as such), no physical device, and no live LLM. Every device, sensor,
-> scenario and result is modeled. A PASS means only that the selected modeled requirements passed for the recorded
-> scenarios and versions — it does not certify a real home.
+## A Fix Today Should Not Become a Failure Tomorrow.
 
-**A fix today should not become a failure tomorrow.** SWITCH turns a household's explicitly confirmed correction
-("Don't turn off the hallway light while someone is there") into a versioned regression requirement, replays it against
-later routine edits in a deterministic simulator, shows the evidence, proposes a constrained repair, reruns the suite,
-and leaves the decision to a person.
+<p align="center">
+  <b>BUILD • SHIP • SHAPE — AMAZON DEVELOPER HACKATHON</b>
+  <br/>
+  <b>Alexa / Alexa+ Track</b>
+  <br/><br/>
+  <sub>Smart-Home Routine Verification • Regression Testing • Human-Controlled Automation</sub>
+</p>
 
-**Authoritative status, evidence and limitations: [FINAL_SUBMISSION_STATUS.md](./FINAL_SUBMISSION_STATUS.md).**
-Also: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · [docs/CONTRACTS.md](docs/CONTRACTS.md) ·
-[docs/ALEXA_PLUS_INTEGRATION.md](docs/ALEXA_PLUS_INTEGRATION.md) · [docs/VERIFICATION.md](docs/VERIFICATION.md) ·
-master spec in `docs/SWITCH_Complete_Merged_Master_Specification_AlexaPlus.pdf`.
+<p align="center">
+  <img src="https://img.shields.io/badge/Amazon-Alexa%2B-00CAFF?style=for-the-badge&logo=amazonalexa&logoColor=white" alt="Amazon Alexa+"/>
+  <img src="https://img.shields.io/badge/AI-Assistive%20Interpretation-7C3AED?style=for-the-badge" alt="AI-assisted interpretation"/>
+  <img src="https://img.shields.io/badge/Deterministic-Verification-16A34A?style=for-the-badge" alt="Deterministic verification"/>
+  <img src="https://img.shields.io/badge/Smart%20Home-Routine%20Safety-0F766E?style=for-the-badge" alt="Smart home"/>
+  <img src="https://img.shields.io/badge/Testing-Regression%20Replay-F59E0B?style=for-the-badge" alt="Regression testing"/>
+  <img src="https://img.shields.io/badge/Human-Approval%20Required-DC2626?style=for-the-badge" alt="Human approval"/>
+</p>
 
-## What you will see
+---
 
-* **Landing page:** the giant **SWITCH** wordmark types itself in. The SWITCH logo sits inside the
-  [React Bits](https://reactbits.dev) **Orb** (WebGL2; it follows the cursor and pulses on click, with a static fallback
-  when WebGL2 is unavailable), above a live preview of the 3D villa. **Explore Your Home** opens the app; **Talk to
-  SWITCH** opens it with the assistant.
-* **SWITCH Assistant:** a simulated Alexa+-style chat that runs every action on the real backend. Say a correction,
-  then "yes, save it as a rule", "what changed in Goodnight?", "check it", "why did it fail?", "fix it", "run the checks
-  again", "approve it". Results appear as clean cards (rule, diff, replay verdict, failed assertion with its trace event,
-  repair, decision), never raw JSON. Full script: [docs/JUDGE_WALKTHROUGH.md](docs/JUDGE_WALKTHROUGH.md).
-* **Floating dock** (bottom of the screen): Home, Search, Assistant, Routines (Replay Lab), House view, Saved
-  Requirements, Reports, Notifications, Theme and Settings. It magnifies on hover, bounces on click, shows tooltips,
-  marks the active page, carries real badges and supports ←/→ keyboard navigation.
-* **Themes:** dark (graphite/cyan) and light (terracotta/gold), saved per browser.
+# 🏆 Competition
 
-## Requirements
+## BUILD • SHIP • SHAPE — AMAZON DEVELOPER HACKATHON
 
-* **Node.js 20+** (tested with 22) and npm.
-* **Python 3.11+** for the backend; **3.13** recommended (the optional ML artifacts were serialized with Python 3.13,
-  scikit-learn 1.9.1, NumPy 2.5.3, pandas 3.0.5 — pinned in `switch_backend/requirements.txt`).
-* A desktop browser with WebGL (Chrome/Edge/Firefox/Safari).
+**Platform:** Devpost
 
-## Quick start
+**Track:** Alexa / Alexa+
 
-| OS | Command (from the project root) |
-|---|---|
-| Windows | double-click `start-switch.bat` (or `powershell -ExecutionPolicy Bypass -File start-switch.ps1`) |
-| macOS / Linux | `./start-switch.sh` |
+**Project:** SWITCH
 
-The scripts create `switch_backend/.venv`, install the pinned backend requirements, run `npm ci` if needed, start the
-backend on **http://127.0.0.1:8000** (API docs at `/docs`) and the app on **http://127.0.0.1:5173**.
+**Category:** Smart-home automation reliability and routine verification
 
-### Windows, step by step
+**Team:** TWOPOINTERS.
 
-1. Install **Python 3.13** (python.org; tick "Add python.exe to PATH" and "py launcher") and **Node.js 20+** (nodejs.org, LTS).
-2. Extract the ZIP, open the `SWITCH_FINAL_SUBMISSION_READY` folder and double-click **`start-switch.bat`**.
-   The first run creates `switch_backend\.venv`, installs the backend requirements and runs `npm ci` (a few minutes).
-3. A second window titled *SWITCH Person 2 Backend - SIMULATED* runs the API on http://127.0.0.1:8000. The first window
-   runs the app.
-4. Open **http://127.0.0.1:5173** in Chrome or Edge.
-5. To stop, close both windows.
+---
 
-PowerShell alternative: `powershell -ExecutionPolicy Bypass -File start-switch.ps1`. Manual Windows commands:
+# 🚨 The Problem
 
-```bat
-cd switch_backend
-py -3 -m venv .venv
-.venv\Scripts\python.exe -m pip install -r requirements.txt
-.venv\Scripts\python.exe -m app
-:: second terminal, project root
-npm ci
-npm run dev -- --host 127.0.0.1 --port 5173
+## "Alexa, don't turn off the hallway light while someone is there."
+
+Imagine coming home late at night.
+
+You have taught Alexa your Goodnight routine. It turns off the lights, locks the doors, and prepares your home for the night. It works perfectly.
+
+Then, a few days later, someone edits the routine.
+
+A condition disappears. A new action is added. Another routine begins interacting with it.
+
+You say the exact same words.
+
+**But your home behaves differently.**
+
+The problem is not necessarily that Alexa misunderstood the original command. The routine itself may have changed in a way that violates what you intended.
+
+Today, a user can correct an unexpected behavior without having a reliable way to preserve that correction as a reusable regression test for later routine edits.
+
+The engineering challenge is to preserve household intent across changes.
+
+- A correction may fix one incident without becoming a durable requirement.
+- Related routines may interact in unexpected ways.
+- A proposed fix may introduce another regression.
+- An AI explanation does not prove that the behavior is correct.
+- A passing simulation does not certify the physical home.
+- Users need to understand what changed and approve a proposed repair.
+
+The fundamental question is:
+
+> **How do we make sure a smart-home routine change does not silently undo a correction the household already made?**
+
+---
+
+# 💡 Our Solution
+
+**SWITCH is a smart-home routine verification layer designed around one principle:**
+
+> **A correction should become a testable requirement, not just another conversation.**
+
+SWITCH helps an Alexa+-oriented household turn an explicitly confirmed correction into a contextual, versioned requirement that can be replayed when a related routine changes.
+
+The system is designed to combine:
+
+- 🏠 Household, room and device context
+- 🗣️ Natural-language correction capture
+- ✅ Explicit confirmation of interpreted intent
+- 📚 Saved, versioned household requirements
+- 🔄 Routine-change comparison
+- ⏱️ Deterministic scenario replay
+- 🔍 Event traces and assertion evidence
+- 🧪 Regression testing
+- 🛠️ Constrained candidate repair suggestions
+- 🔁 Re-running tests after a proposed repair
+- 👤 Human review and approval
+- 📋 Reproducible test reports
+- 🔌 Clear integration provenance for live, imported and simulated data
+
+The key distinction is that **AI may interpret a correction or suggest a repair, but the deterministic verification engine owns the test result.**
+
+---
+
+# 🎯 Core Principle
+
+SWITCH does not treat a plausible AI answer as proof that a routine is correct.
+
+Instead, it follows a repeatable verification workflow:
+
+```text
+USER CORRECTION
+       ↓
+INTERPRET INTENT
+       ↓
+CLARIFY AMBIGUITIES
+       ↓
+USER CONFIRMATION
+       ↓
+VERSIONED REQUIREMENT
+       ↓
+ROUTINE CHANGE
+       ↓
+DETERMINISTIC REPLAY
+       ↓
+ASSERTION EVALUATION
+       ↓
+PASS / FAIL / INCONCLUSIVE
+       ↓
+TRACE + EVIDENCE
+       ↓
+PROPOSED REPAIR
+       ↓
+RE-RUN REGRESSION SUITE
+       ↓
+HUMAN REVIEW
 ```
 
-Problems? See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
+The interpretation layer proposes meaning.
 
-### Manual start
+The requirement layer preserves confirmed intent.
+
+The replay engine executes a modeled scenario.
+
+The evaluator determines whether the assertions passed.
+
+The user decides whether a proposed change should be approved.
+
+---
+
+# 🏠 The Canonical SWITCH Scenario
+
+Consider a household with a hallway light and an occupancy sensor.
+
+## Before the change
+
+The Goodnight routine contains an occupancy guard.
+
+```text
+ROUTINE: GOODNIGHT
+
+IF:
+    Goodnight is triggered
+    AND hallway occupancy is false
+
+THEN:
+    Turn hallway light OFF
+```
+
+The household explicitly confirms this requirement:
+
+> The hallway light must not be turned off by Goodnight while hallway occupancy is detected.
+
+SWITCH saves the confirmed requirement with its scope, conditions, expected behavior and version.
+
+## A routine edit introduces a regression
+
+Someone edits Goodnight and removes the occupancy condition.
+
+```text
+BEFORE
+
+Goodnight
+    ↓
+Check occupancy
+    ↓
+Occupancy = false?
+    ↓
+Turn light OFF
+
+
+AFTER EDIT
+
+Goodnight
+    ↓
+Turn light OFF
+```
+
+The edited routine no longer preserves the original expectation.
+
+## SWITCH replays the scenario
+
+```text
+SCENARIO INPUT
+
+Goodnight triggered = true
+Hallway occupancy = true
+Hallway light = ON
+          ↓
+EXECUTE CANDIDATE ROUTINE
+          ↓
+ACTUAL ACTION: LIGHT OFF
+          ↓
+COMPARE WITH CONFIRMED REQUIREMENT
+          ↓
+FAIL
+          ↓
+SHOW REQUIREMENT + EVENT TRACE
+          ↓
+PROPOSE RESTORING OCCUPANCY GUARD
+          ↓
+RE-RUN TESTS
+          ↓
+USER REVIEWS CANDIDATE
+```
+
+The failure is supported by the modeled event trace and the violated assertion, not merely by an AI-generated explanation.
+
+This is the core SWITCH experience: **remember what the household corrected, then test whether future changes preserve it.**
+
+---
+
+# 🧠 What Makes SWITCH Different?
+
+Most routine troubleshooting focuses on understanding or correcting the behavior that just occurred.
+
+SWITCH focuses on whether that correction survives the next change.
+
+| Conventional troubleshooting | SWITCH's proposed approach |
+|---|---|
+| Explain a routine conflict | Preserve the user's confirmed expectation |
+| Fix the current behavior | Create a reusable regression requirement |
+| Inspect the current routine | Compare candidate versions |
+| Show a suggested fix | Show the proposed diff and rerun evidence |
+| Trust a plausible explanation | Evaluate explicit assertions against a trace |
+| Report a binary success | Distinguish PASS, FAIL and INCONCLUSIVE |
+| Apply a change immediately | Require explicit human approval |
+
+The differentiator is not simply detecting a conflict.
+
+It is **preserving intent across routine changes and making the verification evidence inspectable.**
+
+---
+
+# 🛠️ Core Product Modules
+
+## 1. 🏠 Home Overview
+
+The home overview provides the context needed to understand a routine.
+
+Designed capabilities include:
+
+- Household and room selection
+- Device states and capabilities
+- Active routines
+- Requirements potentially affected by a routine change
+- Latest replay results
+- Recent activity
+- A Run Regression entry point
+- Integration status
+
+The house visualization and the accompanying panels should reflect the same underlying modeled state.
+
+## 2. 🗣️ Correction Capture
+
+A user describes an undesirable outcome in natural language.
+
+Example:
+
+```text
+"Don't turn off the hallway light
+while someone is there."
+```
+
+The interpretation layer proposes a structured requirement containing relevant entities, conditions, expected behavior and scope.
+
+If the statement is ambiguous, SWITCH should ask for clarification instead of silently guessing.
+
+An interpretation remains a draft until the user explicitly confirms it.
+
+## 3. 📚 Saved Requirements
+
+Confirmed corrections become inspectable, versioned requirements.
+
+Each requirement is designed to retain:
+
+- Requirement ID
+- Original correction
+- Household and device scope
+- Preconditions
+- Expected behavior
+- Version
+- Confirmation state
+- Creation and update history
+- Last replay result
+
+Users should be able to review, edit, disable or retire requirements while preserving their history.
+
+Unconfirmed drafts must never be treated as enforced requirements.
+
+## 4. 🔄 Replay Lab
+
+The Replay Lab makes the verification process understandable rather than hiding it behind a final status.
+
+It is designed to display:
+
+- Original and candidate routine versions
+- The routine diff
+- A deterministic simulated clock
+- Ordered events
+- Condition evaluation
+- State transitions
+- Assertion results
+- Requirement IDs associated with failures
+- Proposed repair
+- Rerun controls
+
+A user should be able to inspect exactly which modeled event caused an expectation to fail.
+
+## 5. 🔍 Deterministic Verification
+
+The verification engine evaluates explicit assertions against a reproducible execution trace.
+
+```text
+LOAD CANDIDATE ROUTINE
+          ↓
+LOAD REQUIREMENT VERSIONS
+          ↓
+FREEZE SCENARIO INPUTS
+          ↓
+INITIALIZE MODELED STATE
+          ↓
+ORDER EVENTS DETERMINISTICALLY
+          ↓
+EXECUTE CONDITIONS AND ACTIONS
+          ↓
+RECORD STATE TRANSITIONS
+          ↓
+EVALUATE ASSERTIONS
+          ↓
+GENERATE TRACE-BACKED REPORT
+```
+
+### Result semantics
+
+| Status | Meaning |
+|---|---|
+| PASS | All required assertions evaluated true for the modeled scenario and recorded versions. |
+| FAIL | At least one evaluated assertion was violated, with evidence identifying the requirement and relevant trace. |
+| INCONCLUSIVE | A necessary condition, capability, sensor state or modeled behavior could not be evaluated reliably. |
+
+Unknown state must never silently become PASS.
+
+A passing result applies only to the tested requirements, scenario and versions. It is not a guarantee that a physical home is safe.
+
+## 6. 🛠️ Candidate Repair
+
+When a requirement fails, SWITCH can optionally suggest a constrained candidate repair.
+
+The intended workflow is:
+
+```text
+FAILED ASSERTION
+       ↓
+IDENTIFY RELEVANT CONDITION
+       ↓
+PROPOSE CANDIDATE DIFF
+       ↓
+VALIDATE THE CANDIDATE
+       ↓
+RERUN TARGETED TESTS
+       ↓
+RERUN RELEVANT REGRESSIONS
+       ↓
+SHOW NEW TRACE + RESULTS
+       ↓
+HUMAN REVIEW
+```
+
+A suggested repair is not a verified fix until the relevant tests have been rerun successfully.
+
+Candidate changes are not automatically deployed to a live routine.
+
+## 7. 📋 Reports
+
+The reporting layer is designed to preserve enough information to reproduce and inspect a result.
+
+A report can include:
+
+- Replay run ID
+- Scenario inputs
+- Routine version
+- Requirement versions
+- Simulator version
+- Assertion totals
+- PASS / FAIL / INCONCLUSIVE results
+- Event trace
+- Expected and actual states
+- Proposed routine diff
+- Reviewer decision
+- Integration mode and provenance
+
+Reports should present evidence, not a blanket score claiming that the entire home is safe.
+
+## 8. 🔌 Devices and Integrations
+
+The integration experience distinguishes what data is available and where it came from.
+
+```text
+INTEGRATION STATUS
+
+Source: SIMULATED / IMPORTED / CONNECTED
+Routine provenance: Explicit
+Supported capabilities: Explicit
+Last health check: Where available
+Permissions: According to the integration
+```
+
+A simulated routine must remain visibly simulated. A live connection should only be shown after a real, supported connection has been implemented and tested.
+
+---
+
+# 🏗️ System Architecture
+
+SWITCH separates the Alexa+ interaction layer from the routine model, deterministic replay engine and assertion evaluator.
+
+```mermaid
+flowchart TB
+
+    U["User / Household"] --> UI["SWITCH Web UI"]
+    UI --> ADAPTER["Alexa+ Adapter"]
+
+    ADAPTER --> API["Normalized SWITCH Service"]
+    UI --> API
+
+    API --> VALIDATION["Schema Validation and Household Scope"]
+    VALIDATION --> REQ["Requirement and Routine Model"]
+
+    REQ --> DRAFTS["Correction Drafts"]
+    REQ --> VERSIONS["Confirmed Requirement Versions"]
+    REQ --> CANDIDATE["Candidate Routine Versions"]
+
+    CANDIDATE --> REPLAY["Deterministic Replay Core"]
+    VERSIONS --> REPLAY
+
+    REPLAY --> STATE["Modeled Device State"]
+    REPLAY --> EVENTS["Ordered Event Trace"]
+
+    STATE --> EVAL["Assertion Evaluator"]
+    EVENTS --> EVAL
+
+    EVAL --> RESULTS["PASS / FAIL / INCONCLUSIVE"]
+    RESULTS --> REPORT["Report and Evidence Service"]
+
+    REPORT --> REVIEW["Human Review"]
+    REVIEW --> REPAIR["Candidate Repair Proposal"]
+    REPAIR --> REPLAY
+```
+
+### Architectural boundaries
+
+- The web UI presents household context, routine changes, traces and reports.
+- The adapter translates supported inputs into the internal SWITCH contract.
+- The normalized service validates schemas, versions and household scope.
+- The requirement model preserves confirmed corrections.
+- The replay core evaluates explicit, reproducible scenarios.
+- The assertion evaluator owns the test result.
+- The report service retains evidence.
+- The optional AI layer proposes structured interpretations or candidate repairs.
+- Human approval remains separate from deployment.
+
+---
+
+# 🔌 Alexa+ Integration Strategy
+
+Alexa+ is the interaction and integration layer for the Alexa-oriented SWITCH experience. It does not replace the deterministic verification core.
+
+The primary integration route must be selected according to the developer access and official requirements available for the hackathon.
+
+```text
+                 ALEXA+ INTERACTION
+                         │
+                         ▼
+                 SUPPORTED ADAPTER
+                         │
+                         ▼
+                SWITCH TOOL CONTRACT
+                         │
+                         ▼
+               REQUIREMENT WORKFLOW
+                         │
+                         ▼
+              DETERMINISTIC REPLAY
+                         │
+                         ▼
+                TRACE-BACKED RESULT
+```
+
+Potential integration paths include:
+
+- A supported MCP server using the required transport and protocol version.
+- A supported Alexa+ Agent Skill.
+- An in-app Alexa+-style simulation connected to the actual SWITCH workflow when live access is unavailable.
+
+The supported route must be verified before claiming integration.
+
+A simulated experience must be labelled **SIMULATED DEMO** and must invoke the real SWITCH application logic rather than displaying hardcoded results.
+
+## Proposed Tool Contract
+
+The adapter is designed around narrow, typed operations:
+
+| Operation | Purpose |
+|---|---|
+| `switch_create_correction_draft` | Interpret a correction into a draft requirement. |
+| `switch_get_requirement` | Retrieve a requirement and its history. |
+| `switch_confirm_requirement` | Confirm a reviewed draft explicitly. |
+| `switch_list_routines` | List supported routines and versions. |
+| `switch_preview_routine_change` | Inspect a candidate diff and affected requirements. |
+| `switch_run_replay` | Execute deterministic tests. |
+| `switch_get_replay_report` | Retrieve assertion results and trace evidence. |
+| `switch_propose_repair` | Create a constrained candidate diff. |
+| `switch_record_review_decision` | Record an approve, reject or revise decision. |
+
+These are proposed contract names; the repository should document which operations are actually implemented and exposed.
+
+---
+
+# 🔐 AI Boundaries, Security and Trust
+
+SWITCH is designed around three separate responsibilities.
+
+```text
+AI INTERPRETATION
+    │
+    └── Propose structured intent or a candidate repair
+
+DETERMINISTIC VERIFICATION
+    │
+    └── Evaluate assertions against modeled execution evidence
+
+AUTHORIZED HUMAN
+    │
+    └── Review and approve or reject a candidate
+```
+
+The system should enforce the following principles:
+
+- Validate structured AI outputs against explicit schemas.
+- Ask for clarification when required information is missing.
+- Require confirmation before activating a requirement.
+- Keep household data within the correct scope.
+- Validate routine and requirement versions.
+- Reject unsupported operations and malformed inputs.
+- Keep secrets out of source control.
+- Avoid logging unnecessary sensitive household information.
+- Treat unknown sensor states and unsupported capabilities as INCONCLUSIVE.
+- Never infer PASS from generated explanatory text.
+- Never deploy a candidate repair without the required human approval.
+
+---
+
+# 🧪 Testing and Evaluation
+
+The verification engine should be evaluated using reproducible scenarios and recorded fixtures.
+
+## Core Test Scenarios
+
+| Scenario | Expected verification behavior |
+|---|---|
+| Occupancy guard preserved | PASS when all relevant assertions hold. |
+| Occupancy guard removed | FAIL when the modeled light turns off despite detected occupancy. |
+| Sensor state unknown | INCONCLUSIVE when the assertion cannot be evaluated reliably. |
+| Ambiguous correction | Remain a draft or request clarification. |
+| Unconfirmed requirement | Do not treat it as an active requirement. |
+| Candidate repair proposed | Do not mark it verified until replay completes. |
+| Repair satisfies the original requirement | PASS only if the relevant assertions actually pass. |
+| Repair breaks another requirement | FAIL for the violated regression assertion. |
+| Unsupported device capability | INCONCLUSIVE rather than silently passing. |
+| Identical replay inputs | Reproduce the same modeled trace and result. |
+
+## Evaluation Metrics
+
+The project can be evaluated using:
+
+- Regression catch rate
+- False-pass and false-fail rates
+- Reproducibility across identical inputs
+- Natural-language interpretation accuracy
+- Ambiguity and clarification rate
+- Requirement-to-trace traceability
+- Candidate repair validation rate
+- User comprehension of reports
+
+Measured values should be reported only after the corresponding experiments have actually been run.
+
+---
+
+# 🧭 End-to-End Workflow
+
+```mermaid
+sequenceDiagram
+
+    actor User
+    participant Alexa as Alexa+ Adapter
+    participant SWITCH as SWITCH Service
+    participant Replay as Deterministic Replay
+    participant Eval as Assertion Evaluator
+    participant Report as Evidence Report
+
+    User->>Alexa: Describe an unwanted routine outcome
+    Alexa->>SWITCH: Create correction draft
+    SWITCH-->>User: Present structured interpretation
+
+    User->>SWITCH: Confirm the requirement
+    SWITCH->>SWITCH: Save confirmed version
+
+    User->>SWITCH: Preview a routine change
+    SWITCH->>Replay: Run candidate scenario
+
+    Replay->>Replay: Execute ordered events
+    Replay->>Eval: Provide trace and state transitions
+    Eval->>Report: Store PASS / FAIL / INCONCLUSIVE
+
+    Report-->>User: Show assertion evidence and routine diff
+
+    opt Candidate repair is available
+        User->>SWITCH: Request a repair proposal
+        SWITCH->>Replay: Rerun relevant regression tests
+        Replay->>Eval: Evaluate candidate
+        Eval->>Report: Store new results
+        Report-->>User: Present updated evidence
+        User->>SWITCH: Approve, reject or revise
+    end
+```
+
+---
+
+# 🖥️ Product Experience
+
+The planned product experience is organized around seven views.
+
+```text
+SWITCH
+  │
+  ├── 1. Home Overview
+  │      Household, rooms, devices and recent replays
+  │
+  ├── 2. Why SWITCH
+  │      Correction-to-regression explanation
+  │
+  ├── 3. Replay Lab
+  │      Routine diff, clock, event trace and assertions
+  │
+  ├── 4. Saved Requirements
+  │      Confirmed expectations, versions and history
+  │
+  ├── 5. Reports
+  │      Reproducible results and reviewer decisions
+  │
+  ├── 6. Devices & Integrations
+  │      Capabilities, provenance and connection status
+  │
+  └── 7. Settings
+         Privacy, retention, accessibility and environment
+```
+
+The interface should make simulated versus connected behavior visible, preserve accessible state-driven UI, and ensure that the displayed replay timeline matches the underlying trace.
+
+---
+
+# 🛠️ Technology Stack
+
+The final technology list should match the actual submitted repository.
+
+## Frontend
+
+- React / Next.js, according to the project configuration
+- TypeScript, where configured
+- Tailwind CSS and UI components, where configured
+- Accessible, state-driven interaction patterns
+
+## Backend and Verification
+
+- SWITCH service and normalized API
+- Versioned routine and requirement models
+- Deterministic simulator
+- Explicit event ordering
+- Assertion evaluator
+- Replay trace and report generation
+- Persistence where implemented
+
+## AI and Integration
+
+- Structured natural-language interpretation
+- Schema-validated candidate repair proposals
+- Alexa+ adapter through the supported integration route
+- Clearly labelled simulated fallback when required
+
+## Testing
+
+- Deterministic fixtures
+- Regression scenarios
+- Assertion-level tests
+- Reproducibility checks
+- Integration tests where available
+
+> Do not add a technology badge or claim a service is integrated unless the code and submitted demo support that claim.
+
+---
+
+# 🚀 Getting Started
+
+## Prerequisites
+
+Install the tools required by the actual repository:
+
+- Node.js and npm, if the frontend uses them
+- The configured backend runtime
+- Dependencies listed in the project manifests
+- Any explicitly required environment services
+
+## 1. Clone the Repository
 
 ```bash
-# terminal 1 — backend (SIMULATED DEMO)
-cd switch_backend
-python -m venv .venv
-source .venv/bin/activate            # Windows: .venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-python -m app                        # defaults: SWITCH_ENV=demo, SWITCH_DEMO_PROFILE=journey, SWITCH_DB=data/switch.db
-
-# terminal 2 — frontend
-npm ci
-npm run dev -- --host 127.0.0.1 --port 5173
+git clone <YOUR_GITHUB_REPOSITORY_URL>
+cd <YOUR_REPOSITORY_DIRECTORY>
 ```
 
-The database `switch_backend/data/switch.db` is created and migrated on first start and seeded with the demo
-household. **Settings → Reset demo** (or `POST /demo/reset {"profile":"journey"}`) restarts the story at any time.
-If the backend is not running, the app still works with the in-browser simulator and labels every result
-**LOCAL / offline fallback**; open `/?offline` to force that mode.
+## 2. Install Dependencies
 
-## Tests and build
+For a Node.js frontend:
 
 ```bash
-npm test                    # 77 Node tests: simulator, app store, GLB geometry/collision, canonical mapping, assistant (incl. a real-backend journey)
-npm run test:integration    # 8 tests: the browser store driven through a REAL backend process (full journey, reset, offline)
-npm run backend:test        # 143 pytest tests (119 original Person 2/3C + 24 integration tests)
-npm run build               # production build (dist/)
-# browser end-to-end (needs both servers running):
-npm i --no-save playwright @axe-core/playwright && npx playwright install chromium
-node tools/e2e_journey.mjs http://127.0.0.1:5173 http://127.0.0.1:8000
+npm install
 ```
 
-`npm run test:integration` uses `switch_backend/.venv` (or `$SWITCH_PYTHON`, else `python3`).
-Actual results of every suite are recorded in [FINAL_SUBMISSION_STATUS.md](./FINAL_SUBMISSION_STATUS.md).
+Install backend dependencies using the project's actual dependency manifest and setup instructions.
 
-## The 2-minute demo (canonical journey)
+## 3. Configure the Environment
 
-1. **Home** — note `SIMULATED DEMO` and `Backend connected` in the top bar. The villa is the live house simulator.
-2. **Saved Requirements** — the correction box already contains *"Don't turn off the hallway light while someone is
-   there."* → **Draft requirement**. Person 3C's rule-based interpreter proposes the structured rule (hallway light must
-   not be set OFF while the hallway is occupied); it is saved as a **DRAFT**, not enforced. Try *"Don't turn off the
-   light while someone is there"* to see a clarification question ("Which light?") — nothing is saved until answered.
-3. **Confirm & save** → `req-… v1 CONFIRMED` (owner confirmation recorded with time and version).
-4. **Replay Lab** — the diff shows the pending Goodnight edit (`v2`) removed *"unless Hallway is occupied"*.
-   **Run Replay** → **FAIL**: occupancy=true (E0001) → Goodnight fires (E0002/E0003) → hallway light ON→OFF (**E0006**)
-   violates the requirement. The timeline flags the event; the 3D house below shows the hallway at that event with the
-   light outlined in red. Approve is disabled.
-5. **Apply Suggested Fix** → a rule-based repair restores the guard, validated by Person 3C's constrained-repair
-   checker, shown as a diff, marked **NOT VERIFIED** (candidate `v3`).
-6. **Re-run Regression Suite** → **PASS** on all 5 relevant tests → **Approve candidate** (recorded, nothing deployed).
-7. **Reports** → the run's versions, trace, assertions, repair provenance and reviewer decision; **Export JSON /
-   Markdown** or **Print / Save as PDF**. **Why SWITCH** now shows this journey from your own records.
-8. **Alexa+ (simulated)** in the top bar: *"Propose a fix"*, *"Re-run the checks"*, *"Approve the change"* (asks for an
-   explicit yes) — every answer is a real SWITCH tool result; the UI updates.
-9. Optional: tick the *hallway sensor offline* edge case and replay → **INCONCLUSIVE**, never a false PASS
-   (exploratory runs never count towards approval).
+Create the required local environment file using the variable names documented in the repository.
 
-## What's in the app (seven pages)
-
-| Page | What it does |
-|---|---|
-| **Home Overview** | The 3D villa (Exterior / Cutaway / Room tour / Walk, numbered rooms 1–8, fullscreen, day/night). Right rail: selected room/device, latest replay (with engine provenance), requirements at risk, active routines (canonical live versions), recent activity. Action strip: Run Replay, Compare Changes, View Trace, Review Proposed Fix. |
-| **Why SWITCH** | The correction-to-regression story: an illustrated walkthrough computed by the in-browser engine, plus **Your recorded journey** built from your real backend records (correction, version, diff, trace, failed assertion, repair, rerun, decision). |
-| **Replay Lab** | Candidate diff, deterministic event timeline (with condition evaluations), assertions, repair proposal with provenance, Run Replay / Apply Suggested Fix / Re-run / Reset Scenario / View Trace, edge-case (exploratory) runs, candidate selector, human decision, and the 3D house replaying the trace. |
-| **Saved Requirements** | Capture a correction → interpretation → clarification → DRAFT → explicit confirmation. Library with filters, structured editing (title, expected behaviour, occupancy/time preconditions, routine scope, scenarios, open questions) creating new versions, disable / re-enable / retire, version history. |
-| **Reports** | Canonical run records: run id, kind, scenario/requirement/routine/simulator versions, integration provenance, fingerprint, assertions with evidence events, repair provenance, comparison to the previous run, reviewer decision, timelines. Exports: JSON (canonical record), Markdown, Print / Save as PDF. |
-| **Devices / Integrations** | 26 modeled devices (state, controls, controlling routine, canonical id) and backend-only devices; live status of the SWITCH backend, Alexa+ (Route C, **SIMULATED DEMO**, harmless connection test), Person 3C interpretation; unimplemented connectors labelled NOT IMPLEMENTED; embedded Alexa+ panel. |
-| **Settings** | Verification engine (backend vs offline), house view, render quality, day/night, reduced motion, simulator speed, resets (including backend demo reset), data status, privacy & retention. |
-
-## How the 3D house works
-
-* **Blender authors, three.js runs.** `blender/build_villa.py` builds the villa procedurally (original reconstruction from screenshots, no third-party geometry). It names every interactive object and writes metadata as glTF extras (`device_id`, `kind`, `room`, `level`). It also exports eye-level room cameras (`CAM_<ROOM>` empties with a look-at target). The app loads only the local `public/models/switch_villa.glb`.
-* **Single source of truth.** `src/sim/engine.js` (deterministic simulator) owns device and sensor state and the ordered trace. `src/state/appStore.js` wires the simulator, requirements, runs, selection and settings. The 3D house, panels, device table and timelines all read the same objects, so they cannot disagree.
-* **Device mapping.** `src/three/houseRegistry.js` maps simulator device IDs to GLB nodes by name and extras, never by mesh index. A test proves all 26 devices map, and that every GLB device is known to the simulator.
-* **Lights.** One runtime point light per (light device × room zone) and emissive bulb materials, each independent per device ID. A small shader patch (`src/three/sceneSetup.js`) makes a point light affect only fragments inside the room zone that contains it, so lights don't leak through walls without costly point-light shadows.
-* **Fans, AC, TV and more.** Fan blades rotate about their own pivot at the modeled rpm, and stop when off. AC shows louver swing, a mode-coloured LED and an airflow cone while the modeled duty is above 5%. Temperature changes gradually (first-order thermal model). The TV screen glows and lights the room. Also modeled: purifier vanes, coffee/security/motion LEDs, and sliding or hinged doors that animate.
-* **Room tour and walk mode.** `src/three/walker.js` is a capsule character controller against a three.js `Octree` of the real triangles. Walls, glass, furniture and ceilings block it. Closed doors block as dynamic boxes and open doors let you through. Stairs are climbed with a 0.30 m step height, so you can walk from the living room up to Bedroom 3. Room tour limits movement to the selected room's box. The same walker is used by the Node tests.
-* **Cutaway.** One shared clipping plane cuts architecture at 2.72 m (ground) or 5.35 m (upper). Roof and upper storey are hidden for the ground cut. Devices, terrace furniture and the site stay visible, and everything is restored on exit.
-* **Day/night** (`src/sim/daylight.js`). The browser's local time and date give a sun position (documented formula, latitude setting only for season length, location never requested). Elevation is blended through a key table into sky colours, sun/moon/hemisphere intensity, exposure and stars, and transitions ease smoothly. Manual mode previews any time and date. It never changes device state, and replays use their own deterministic clock.
-
-### Optional: regenerate the 3D model (Blender 5.2 via the `bpy` module, Python 3.13)
-```
-py -3.13 -m venv venv                         (macOS/Linux: python3.13 -m venv venv)
-venv\Scripts\pip install bpy==5.2.2 pillow numpy
-venv\Scripts\python blender\build_villa.py    -> blender/out/switch_villa.blend + public/models/switch_villa.glb
-npm run test:geometry                         -> re-validates cameras, rooms, devices and collision on the new GLB
+```text
+.env.local
 ```
 
-## Trust boundary
+Do not commit credentials, API keys, household data or production secrets.
 
-AI may interpret a correction or propose a repair. Only the deterministic evaluator (`switch_backend/app/assertions.py`)
-returns PASS / FAIL / INCONCLUSIVE, and only an authorized person can approve a candidate. The interpreter is Person
-3C's rule-based engine (no live LLM is configured); repairs are rule-derived and validated against a constrained
-allowlist. Unknown or unsupported states yield INCONCLUSIVE. Approval is recorded; deployment is not implemented.
+## 4. Start the Application
 
-## Project map
+Use the commands defined in the repository's scripts and backend entry points.
 
-```
-contracts/canonical_home.json   shared room/device contract (backend, Person 3C, frontend)
-switch_backend/app/             FastAPI: main (routes), services, simulator, assertions, regression, diff, store,
-                                p3c_bridge (Person 3C <-> Person 2), alexa_adapter (Route C), fixtures/seed (profiles)
-switch_backend/switch_p3c/      Person 3C: interpreter, repair validator, optional LLM provider, ML artifacts
-switch_backend/tests/           143 pytest tests
-src/state/                      appStore (single store), canonicalWorkflow (backend provider), StoreContext
-src/api/                        switchBackend (client), canonicalMap (pure mapping), backendBridge (compat)
-src/sim/                        browser house simulator + offline workflow (switch.js), rooms, daylight
-src/three/                      3D viewer (HouseViewer, sceneSetup, houseRegistry, walker, Environment)
-src/pages/, src/ui/             seven pages, device UI, assistant panel (AlexaPanel, simulated Alexa+), floating Dock
-src/assistant/                  assistant.js (intent routing + typed result cards), session.js (context, confirmations, backend tool calls)
-src/landing/                    Landing page + TypewriterWordmark
-src/components/reactbits/Orb/   React Bits Orb (upstream source + CSS, MIT + Commons Clause licence)
-public/brand/                   SWITCH logo (cut from the supplied intro video's final frame)
-tests/                          Node tests incl. canonical, assistant and backend_store tests; fixtures/backend_journey.json
-tools/e2e_journey.mjs           browser E2E of the canonical journey (+ a11y, responsive)
-public/models/switch_villa.glb  runtime 3D model; blender/ sources
+For a frontend that defines a development script:
+
+```bash
+npm run dev
 ```
 
-## Appearance themes
+Open the local URL printed by the development server.
 
-SWITCH includes a persisted theme toggle in the top bar. Dark mode remains the original graphite / deep-slate and cyan theme. Light mode uses a warm terracotta sky with gold accents. Both themes add translucent glass-style cards and subtle pointer-following edge highlights. Theme preference is saved in browser localStorage when available. Reduced-motion preferences disable hover transitions.
+## 5. Verify the Demo Mode
+
+Confirm that the integration status accurately identifies whether the current experience is simulated, imported or live-connected.
+
+Use the documented sample routine and scenario fixtures to reproduce the verification workflow.
+
+> **Setup note:** Replace these general instructions with the repository's verified commands, required environment variables and exact local URLs before submitting.
+
+---
+
+# ▶️ Demo Workflow
+
+Use the following scenario to demonstrate the core concept, provided each step is implemented in the submitted build.
+
+```text
+1. Open SWITCH
+        ↓
+2. Inspect the modeled household
+        ↓
+3. Open the Goodnight routine
+        ↓
+4. Enter the hallway occupancy correction
+        ↓
+5. Review and confirm the requirement
+        ↓
+6. Save the versioned requirement
+        ↓
+7. Introduce a candidate routine edit
+        ↓
+8. Remove the occupancy guard
+        ↓
+9. Run deterministic replay
+        ↓
+10. Inspect the failed assertion
+        ↓
+11. Open the event trace and routine diff
+        ↓
+12. Request a candidate repair
+        ↓
+13. Rerun the relevant regression suite
+        ↓
+14. Inspect the updated evidence
+        ↓
+15. Approve, reject or revise the candidate
+```
+
+The demo should show actual application behavior, not a sequence of prerecorded results presented as live verification.
+
+---
+
+# 🏅 What Makes SWITCH Worth Building?
+
+The interesting problem is not whether AI can explain a smart-home routine.
+
+It is whether a household's explicit expectations can survive changes to that routine.
+
+SWITCH connects a user's correction to a persistent requirement, a reproducible scenario, an assertion-level result, and a human decision.
+
+```text
+CORRECT
+   ↓
+CONFIRM
+   ↓
+PRESERVE
+   ↓
+REPLAY
+   ↓
+VERIFY
+   ↓
+INSPECT
+   ↓
+APPROVE
+```
+
+That creates a practical engineering direction for smart-home reliability: make routine changes testable before treating them as trustworthy.
+
+---
+
+# 🎯 What's Next for SWITCH?
+
+1. Complete the end-to-end correction, confirmation and persistence workflow.
+2. Strengthen deterministic replay and assertion coverage.
+3. Improve clarification for ambiguous natural-language requirements.
+4. Add candidate routine diffs and constrained repair validation.
+5. Complete the supported Alexa+ integration route and document its evidence.
+6. Expand regression fixtures across interacting routines and device states.
+7. Evaluate reproducibility, regression detection and false-pass behavior.
+8. Improve report traceability, privacy controls and accessible review workflows.
+
+The long-term direction is to make smart-home automation changes easier to inspect, reproduce, test and approve.
+
+---
+
+# ⚠️ Scope and Limitations
+
+SWITCH must distinguish modeled behavior from physical-device behavior.
+
+The master specification describes a prototype that models devices, routines, saved requirements and test results. A live Alexa account or physical-device connection must not be claimed until it has been implemented and tested.
+
+A PASS means that the selected assertions passed for the recorded modeled scenarios and versions. It does not certify the physical home or guarantee that every possible routine interaction has been covered.
+
+Likewise, an AI-generated repair is only a candidate until deterministic tests rerun successfully.
+
+These boundaries are part of the trust model, not exceptions to it.
+
+---
+
+# 🔗 Project Links
+
+- **GitHub Repository:** https://github.com/rahulsharma767/SWITCH-.
+- **Working Demo:** https://switch-virid.vercel.app/#/home.
+- **Demo Video:** https://youtu.be/skNt18zIUVg?si=OZla5FN2XvzavW7Y.
+- **Devpost Submission:** https://devpost.com/software/switch-krhtvp.
+---
+
+<p align="center">
+  <b>SWITCH</b>
+  <br/><br/>
+  <b>Remember the correction.</b>
+  <br/>
+  <b>Replay the scenario.</b>
+  <br/>
+  <b>Verify the change.</b>
+  <br/><br/>
+  <sub>Built for the Amazon Developer Hackathon — Alexa Track</sub>
+</p>
